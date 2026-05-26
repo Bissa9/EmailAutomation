@@ -1,0 +1,40 @@
+services:
+  email-bot:
+    build: .
+    container_name: emailauto-bot
+    env_file:
+      - .env
+    volumes:
+      # OAuth files and token (generate token locally before first Docker run)
+      - ./credentials:/app/credentials
+      # Optional: edit templates, recipients, and attachments without rebuilding
+      - ./templates:/app/templates
+      - ./data:/app/data
+      - ./attachments:/app/attachments
+
+  scheduler:
+    build: .
+    container_name: emailauto-scheduler
+    env_file:
+      - .env
+    volumes:
+      - ./credentials:/app/credentials
+      - ./templates:/app/templates
+      - ./data:/app/data
+      - ./attachments:/app/attachments
+    profiles:
+      - scheduler
+    # Example daily report at 09:00 — edit args to match your needs
+    command:
+      - schedule
+      - --type
+      - report
+      - --time
+      - "09:00"
+      - --to
+      - your-email@gmail.com
+      - --title
+      - "Daily Report"
+      - --summary
+      - "Automated daily summary from Docker."
+    restart: unless-stopped

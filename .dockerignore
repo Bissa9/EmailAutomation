@@ -1,0 +1,13 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.env
+credentials/credentials.json
+credentials/token.json
+.DS_Store
+*.md
+examples/

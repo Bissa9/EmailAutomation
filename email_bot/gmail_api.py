@@ -1,4 +1,6 @@
 import base64
+import os
+import webbrowser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
@@ -51,7 +53,21 @@ class GmailAPIClient:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     str(self.credentials_path), SCOPES
                 )
-                creds = flow.run_local_server(port=0)
+                if os.path.exists("/.dockerenv"):
+                    raise RuntimeError(
+                        "Gmail login cannot run inside Docker (no browser).\n"
+                        "On your Mac, run this once to create the token:\n"
+                        "  python main.py send --to YOUR_EMAIL --subject Test --body Hello\n"
+                        f"Then ensure the token file exists at: {self.token_path}"
+                    )
+                try:
+                    creds = flow.run_local_server(port=0)
+                except webbrowser.Error as exc:
+                    raise RuntimeError(
+                        "Could not open a browser for Gmail login.\n"
+                        "Run the send command on your Mac first to create the token, "
+                        f"then retry Docker.\nExpected token path: {self.token_path}"
+                    ) from exc
 
             self.token_path.parent.mkdir(parents=True, exist_ok=True)
             self.token_path.write_text(creds.to_json())
